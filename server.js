@@ -85,7 +85,7 @@ app.post('/status', (req, res) => {
   console.log('STATUS UPDATE RECEIVED')
   console.log(JSON.stringify(req.body,null,2))
 
-  const { SmsSid, SmsStatus} = req.body
+  const { SmsSid, SmsStatus, Price } = req.body
 
   if (SmsStatus == 'sent') {
     dbConnect().then(() => {
@@ -100,6 +100,19 @@ app.post('/status', (req, res) => {
       }, {
         $set: {
           fromCountry, toCountry, segmentCost, totalCost
+        }
+      })
+    }).then(() => {
+      res.status(201).send()
+    }).catch(console.error)
+  } else if (SmsStatus == 'delivered' && Price) {
+    dbConnect().then(() => {
+      return db.collection('log').updateOne({
+        id: SmsSid
+      }, {
+        $set: {
+          totalCost: Price,
+          updatedByCallback: true
         }
       })
     }).then(() => {
