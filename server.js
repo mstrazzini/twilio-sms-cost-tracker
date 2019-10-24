@@ -100,20 +100,25 @@ app.post('/status', (req, res) => {
       }, {
         $set: {
           fromCountry, toCountry, segmentCost, totalCost
-        }
+        },
+        $currentDate: { lastModified: true }
       })
     }).then(() => {
       res.status(201).send()
     }).catch(console.error)
   } else if (SmsStatus == 'delivered' && Price) {
+
+    console.log(`NEW PRICE for ${SmsSid}: ${Price}`)
+
     dbConnect().then(() => {
       return db.collection('log').updateOne({
-        id: SmsSid
+        _id: SmsSid
       }, {
         $set: {
           totalCost: Price,
-          updatedByCallback: true
-        }
+          costSetByCallback: true
+        },
+        $currentDate: { lastModified: true }
       })
     }).then(() => {
       res.status(201).send()
